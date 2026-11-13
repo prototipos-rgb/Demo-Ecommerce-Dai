@@ -11,7 +11,7 @@ import { ClientProfileView } from "@/components/ClientProfileView";
 import { VendedorCotizador } from "@/components/VendedorCotizador";
 import { VendedorCarteraClientes } from "@/components/VendedorCarteraClientes";
 import { VendedorInventarioSubido } from "@/components/VendedorInventarioSubido";
-import { VehiculoIdentificadorBot } from "@/components/VehiculoIdentificadorBot";
+import { BuscadorUnificadoInteligente, PresetVehicle } from "@/components/BuscadorUnificadoInteligente";
 import { AdminGestionPedidos } from "@/components/AdminGestionPedidos";
 import { EditProductModal } from "@/components/EditProductModal";
 import { SAMPLE_KARDEX_DATA, KardexRow } from "@/data/mockKardexSample";
@@ -94,6 +94,7 @@ export default function PortalPage() {
   const [selectedBrand, setSelectedBrand] = useState<string>("Todos");
   const [selectedOrigin, setSelectedOrigin] = useState<string>("Todos");
   const [selectedYearRange, setSelectedYearRange] = useState<string>("Todos");
+  const [identifiedVehicle, setIdentifiedVehicle] = useState<PresetVehicle | null>(null);
 
   // Autocompletado inteligente
   const [showAutocomplete, setShowAutocomplete] = useState<boolean>(false);
@@ -232,8 +233,34 @@ export default function PortalPage() {
   // Filtrado de productos en catálogo
   const filteredProducts = products.filter((p) => {
     const q = searchQuery.toLowerCase().trim();
+    const cleanQ = q.replace(/[\s-]/g, "");
+
+    // Si hay un vehículo identificado por patente, VIN o modelo
+    let matchVehicle = true;
+    if (identifiedVehicle) {
+      const vKey = identifiedVehicle.searchKey.toLowerCase();
+      const vChasis = identifiedVehicle.patenteChasis.toLowerCase();
+      const vMarca = identifiedVehicle.patenteMarca.toLowerCase();
+      const vModelo = identifiedVehicle.patenteModelo.toLowerCase();
+
+      matchVehicle =
+        p.title.toLowerCase().includes(vKey) ||
+        p.sku.toLowerCase().includes(vKey) ||
+        p.brand.toLowerCase().includes(vMarca) ||
+        (p.patenteMarca && p.patenteMarca.toLowerCase().includes(vMarca)) ||
+        (p.patenteModelo && p.patenteModelo.toLowerCase().includes(vKey)) ||
+        (p.patenteChasis && p.patenteChasis.toLowerCase().includes(vChasis)) ||
+        p.vehicleCompatibility.some(
+          (v) => v.toLowerCase().includes(vKey) || v.toLowerCase().includes(vMarca)
+        ) ||
+        p.vinPrefix.some(
+          (vin) => vChasis.includes(vin.toLowerCase()) || vin.toLowerCase().includes(vChasis)
+        );
+    }
+
     const matchQuery =
       !q ||
+      (identifiedVehicle && (q === identifiedVehicle.patente.toLowerCase() || cleanQ === identifiedVehicle.patente.toLowerCase().replace(/[\s-]/g, ""))) ||
       p.title.toLowerCase().includes(q) ||
       p.sku.toLowerCase().includes(q) ||
       p.oem.toLowerCase().includes(q) ||
@@ -271,10 +298,10 @@ export default function PortalPage() {
       (selectedYearRange.includes("2006-2015") && (p.patenteAnio?.includes("2006") || p.vehicleCompatibility.some((v) => v.includes("2006") || v.includes("2012")))) ||
       (selectedYearRange.includes("1998-2005") && (p.patenteAnio?.includes("1998") || p.vehicleCompatibility.some((v) => v.includes("1998") || v.includes("2003"))));
 
-    return matchQuery && matchCategory && matchSubcategory && matchBrand && matchOrigin && matchYear;
+    return matchVehicle && matchQuery && matchCategory && matchSubcategory && matchBrand && matchOrigin && matchYear;
   });
 
-  // Sugerencias de autocompletado
+  // Sugerencias de autocompletado inteligente
   const autocompleteSuggestions = searchQuery.trim().length >= 2
     ? products
         .filter((p) =>
@@ -282,7 +309,8 @@ export default function PortalPage() {
           p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (p.patenteChasis && p.patenteChasis.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (p.patenteModelo && p.patenteModelo.toLowerCase().includes(searchQuery.toLowerCase()))
+          (p.patenteModelo && p.patenteModelo.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          p.vehicleCompatibility.some((v) => v.toLowerCase().includes(searchQuery.toLowerCase()))
         )
         .slice(0, 5)
     : [];
@@ -609,9 +637,6 @@ export default function PortalPage() {
               />
             ) : (
               <div className="space-y-8 animate-in fade-in duration-300">
-                {/* 1. BOT IDENTIFICADOR CLAVE DE VEHÍCULO (PATENTE, MODELO, CHASIS, MOTOR) */}
-                <VehiculoIdentificadorBot onVehicleSelected={(k) => setSearchQuery(k)} />
-
                 {clientApprovalStatus === "sin_aprobar" && (
                   <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
@@ -632,160 +657,32 @@ export default function PortalPage() {
                   </div>
                 )}
 
-                {/* 2. CUADRO DE BÚSQUEDA TÉCNICA CON AUTOCOMPLETADO Y FILTROS POR CATEGORÍA Y AÑO */}
-                <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 space-y-5 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-4">
-                    <div>
-                      <h3 className="text-base font-bold text-stone-900 font-serif">
-                        Consola de Búsqueda Técnica Multiem
-                      </h3>
-                      <p className="text-xs text-stone-500 font-light">
-                        Filtre por código OEM, Chasis (VIN), Código Marutomo, Motor, Año o Subcategoría
-                      </p>
-                    </div>
-                    <span className="text-xs font-bold text-stone-400 font-mono">
-                      {filteredProducts.length} Repuestos Coincidentes
-                    </span>
-                  </div>
-
-                  {/* Input de Búsqueda con Menú Flotante de Autocompletado */}
-                  <div className="relative">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          setShowAutocomplete(true);
-                        }}
-                        onFocus={() => setShowAutocomplete(true)}
-                        placeholder="Buscar por OEM (04465-0K260), Chasis VIN (MR0HA3CD), Marutomo, Hilux, Navara, D4HB..."
-                        className="w-full pl-11 pr-10 py-3.5 bg-[#F6F4EE] border border-stone-200 rounded-2xl text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900 transition font-medium"
-                      />
-                      <Search className="w-5 h-5 text-stone-400 absolute left-4 top-3.5" />
-                      {searchQuery && (
-                        <button
-                          onClick={() => {
-                            setSearchQuery("");
-                            setShowAutocomplete(false);
-                          }}
-                          className="absolute right-3.5 top-3.5 text-stone-400 hover:text-stone-700 p-0.5"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Menú de Autocompletado Instantáneo */}
-                    {showAutocomplete && autocompleteSuggestions.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-stone-200 shadow-xl z-30 p-2 space-y-1 animate-in fade-in duration-150">
-                        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400 font-mono">
-                          Sugerencias de Catálogo en Vivo:
-                        </div>
-                        {autocompleteSuggestions.map((sug) => (
-                          <div
-                            key={sug.id}
-                            onClick={() => {
-                              setSearchQuery(sug.oem);
-                              setShowAutocomplete(false);
-                            }}
-                            className="p-2.5 rounded-xl hover:bg-[#F6F4EE] cursor-pointer flex items-center justify-between text-xs transition"
-                          >
-                            <div className="space-y-0.5">
-                              <div className="font-bold text-stone-900">
-                                {sug.title}
-                              </div>
-                              <div className="text-[11px] text-stone-500 font-mono">
-                                OEM: <strong className="text-stone-800">{sug.oem}</strong> &bull; Chasis: {sug.patenteChasis} &bull; Modelo: {sug.patenteModelo}
-                              </div>
-                            </div>
-                            <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-stone-100 text-stone-700 shrink-0">
-                              {sug.sku}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Desplegables de filtros: Categoría, Subcategoría, Marca, Año, Procedencia */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
-                        Línea / Rubro:
-                      </label>
-                      <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none"
-                      >
-                        {categories.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
-                        Subcategoría:
-                      </label>
-                      <select
-                        value={selectedSubcategory}
-                        onChange={(e) => setSelectedSubcategory(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none"
-                      >
-                        {subcategories.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
-                        Fabricante Vehicular:
-                      </label>
-                      <select
-                        value={selectedBrand}
-                        onChange={(e) => setSelectedBrand(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none"
-                      >
-                        {brandOptions.map((b) => (
-                          <option key={b} value={b}>{b}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
-                        Año Compatibilidad:
-                      </label>
-                      <select
-                        value={selectedYearRange}
-                        onChange={(e) => setSelectedYearRange(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none"
-                      >
-                        {yearRanges.map((y) => (
-                          <option key={y} value={y}>{y}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
-                        Origen de Fábrica:
-                      </label>
-                      <select
-                        value={selectedOrigin}
-                        onChange={(e) => setSelectedOrigin(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none"
-                      >
-                        {origins.map((o) => (
-                          <option key={o} value={o}>{o}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
+                {/* BUSCADOR TÉCNICO UNIFICADO & DECODIFICADOR INTELIGENTE B2B */}
+                <BuscadorUnificadoInteligente
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  selectedSubcategory={selectedSubcategory}
+                  setSelectedSubcategory={setSelectedSubcategory}
+                  selectedBrand={selectedBrand}
+                  setSelectedBrand={setSelectedBrand}
+                  selectedOrigin={selectedOrigin}
+                  setSelectedOrigin={setSelectedOrigin}
+                  selectedYearRange={selectedYearRange}
+                  setSelectedYearRange={setSelectedYearRange}
+                  categories={categories}
+                  subcategories={subcategories}
+                  brandOptions={brandOptions}
+                  originOptions={origins}
+                  yearRanges={yearRanges}
+                  totalProductsCount={products.length}
+                  filteredProductsCount={filteredProducts.length}
+                  autocompleteSuggestions={autocompleteSuggestions}
+                  onSelectSuggestion={(sug) => setSearchQuery(sug.oem)}
+                  identifiedVehicle={identifiedVehicle}
+                  setIdentifiedVehicle={setIdentifiedVehicle}
+                />
 
                 {/* 3. GRILLA EN FILA DE 5 COLUMNAS */}
                 <div className="space-y-4">
