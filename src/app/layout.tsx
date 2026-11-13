@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
-import { DemoControlBar } from "@/components/DemoControlBar";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { AiSearchBotWidget } from "@/components/AiSearchBotWidget";
+import { FloatingButtons } from "@/components/FloatingButtons";
+import { ToastContainer } from "@/components/ToastContainer";
 
 export const metadata: Metadata = {
-  title: "Daisekai Automotriz & Osakansai | E-Commerce B2B ZOFRI",
-  description: "Importadora y Exportadora Daisekai Limitada - Catálogo Mayorista de Repuestos Automotrices en Zona Franca de Iquique. Desarrollado por Aerys IT.",
+  title: "Daisekai Limitada & Osakansai | Importadora de Repuestos Automotrices ZOFRI",
+  description: "Fabricación, importación y exportación de repuestos para todo tipo de vehículos. Operaciones en Zona Franca de Iquique (ZOFRI).",
 };
 
 export default function RootLayout({
@@ -17,23 +17,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className="dark scroll-smooth">
-      <body className="min-h-screen bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+    <html lang="es" className="scroll-smooth">
+      <body className="min-h-screen bg-[#FBF9F5] text-stone-900 flex flex-col antialiased">
         <AppProvider>
-          {/* Top Demo Controller Bar for client meetings */}
-          <DemoControlBar />
-
-          {/* Sticky Corporate Navbar */}
+          {/* Barra de navegación corporativa estilo MOD JOURNEY */}
           <Navbar />
 
-          {/* Main Page Content */}
+          {/* Notificaciones push interactivas */}
+          <ToastContainer />
+
+          {/* Contenido principal */}
           <main className="flex-1">{children}</main>
 
-          {/* Corporate Footer with Zofri details and Aerys credit */}
+          {/* Pie de página elegante estilo MOD JOURNEY */}
           <Footer />
 
-          {/* Floating AI Search Bot preview */}
-          <AiSearchBotWidget />
+          {/* Botones flotantes (WhatsApp y Bot IA) */}
+          <FloatingButtons />
         </AppProvider>
       </body>
     </html>

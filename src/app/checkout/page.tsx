@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { formatCLP } from "@/lib/utils";
+import { generateProformaPDF } from "@/lib/pdfGenerator";
 import {
   Trash2,
   Plus,
@@ -34,7 +35,9 @@ export default function CheckoutPage() {
     orderSummary,
     clientInfo,
     role,
-    setRole
+    setRole,
+    clientApprovalStatus,
+    setClientApprovalStatus
   } = useApp();
 
   const [isProformaModalOpen, setIsProformaModalOpen] = useState(false);
@@ -103,22 +106,22 @@ export default function CheckoutPage() {
         </div>
 
         {/* Guest Warning if in blind mode */}
-        {role === "blind_guest" && (
+        {clientApprovalStatus === "sin_aprobar" && (
           <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
                 <strong className="block text-white font-semibold">
-                  Estás navegando en modo Catálogo Ciego (Público).
+                  Tu cuenta está en proceso de evaluación por Administración.
                 </strong>
-                Para emitir la proforma formal y aplicar descuentos por volumen, valida tu cuenta mayorista.
+                Para emitir la proforma formal y aplicar descuentos por volumen, la cuenta debe estar aprobada.
               </div>
             </div>
             <button
-              onClick={() => setRole("b2b_client")}
+              onClick={() => setClientApprovalStatus("aprobado")}
               className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg shrink-0 shadow transition"
             >
-              Simular Validación RUT
+              Simular Aprobación RUT
             </button>
           </div>
         )}
@@ -178,10 +181,10 @@ export default function CheckoutPage() {
                 </span>
               </h2>
 
-              {orderSummary.backorderItemsCount > 0 && (
+              {orderSummary.frozenItemsCount > 0 && (
                 <span className="text-[11px] px-2.5 py-1 rounded-md bg-amber-950 text-amber-300 border border-amber-800 font-medium flex items-center gap-1">
                   <AlertCircle className="w-3.5 h-3.5" />
-                  {orderSummary.backorderItemsCount} unidades bajo Proforma Condicionada
+                  {orderSummary.frozenItemsCount} unidades bajo Proforma Condicionada (Budget Congelado)
                 </span>
               )}
             </div>
@@ -323,10 +326,10 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between">
                   <span className="text-slate-400 flex items-center gap-1">
-                    <Truck className="w-3.5 h-3.5 text-cyan-400" /> Flete Starken ({orderSummary.totalWeightKg} kg):
+                    <Truck className="w-3.5 h-3.5 text-cyan-400" /> Flete Mayorista Internacional ({orderSummary.totalWeightKg} kg):
                   </span>
                   <span className="font-semibold text-cyan-400">
-                    {formatCLP(orderSummary.estimatedFreightCLP)}
+                    {formatCLP(orderSummary.shippingCostCLP || orderSummary.estimatedFreightCLP)}
                   </span>
                 </div>
 
@@ -404,11 +407,45 @@ export default function CheckoutPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    generateProformaPDF({
+                      proformaNumber: "PRF-2026-0891",
+                      date: new Date().toLocaleDateString("es-CL"),
+                      validityDays: 15,
+                      client: {
+                        razonSocial: clientInfo.razonSocial,
+                        rut: clientInfo.rutEmpresa,
+                        giro: clientInfo.giro,
+                        contacto: clientInfo.contacto,
+                        telefono: clientInfo.telefono,
+                        correo: clientInfo.correo,
+                        ciudad: "Iquique / Pozo Almonte",
+                      },
+                      items: cart.map((it) => ({
+                        sku: it.product.sku,
+                        oem: it.product.oem,
+                        title: it.product.title,
+                        quantity: it.quantity,
+                        unitPrice: it.product.priceNeto,
+                        totalPrice: it.product.priceNeto * it.quantity,
+                        isFrozenWait: it.isFrozenWait,
+                      })),
+                      taxRegime: orderSummary.taxRegime || "nacional",
+                      deliveryOption: "envio",
+                      shippingCompany: "Trans-Bolivia Heavy Logistics & Cargo S.R.L.",
+                      deliveryDays: "5 a 7 días hábiles",
+                      subtotalNeto: orderSummary.subtotalNeto,
+                      discountAmount: orderSummary.volumeDiscountAmount,
+                      discountPercentage: orderSummary.volumeDiscountPercent,
+                      iva: orderSummary.ivaCLP,
+                      shippingCost: orderSummary.shippingCostCLP,
+                      totalFinal: orderSummary.totalFinalCLP,
+                    });
+                  }}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Imprimir / Guardar PDF</span>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Descargar Proforma en PDF</span>
                 </button>
                 <button
                   onClick={() => setIsProformaModalOpen(false)}

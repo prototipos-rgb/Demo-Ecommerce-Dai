@@ -1,112 +1,138 @@
 import React from "react";
 import Link from "next/link";
-import { MapPin, Phone, Mail, ShieldCheck, HeartHandshake, Container, Sparkles } from "lucide-react";
+import { MapPin, Phone, Mail, HeartHandshake, ArrowRight } from "lucide-react";
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-slate-950 text-slate-400 border-t border-slate-800 text-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Col 1: Identity & Group */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm">
+    <footer className="bg-[#0B132B] text-stone-300 text-sm relative overflow-hidden border-t border-stone-800">
+      {/* Patrón sutil topográfico de fondo estilo MOD JOURNEY */}
+      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 relative z-10 space-y-16">
+        {/* Fila Superior: Boletín + Columnas */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+          {/* Columna Izquierda: Identidad y Newsletter */}
+          <div className="md:col-span-4 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white text-stone-900 flex items-center justify-center font-bold text-base shadow-sm">
                 D
               </div>
-              <span className="text-lg font-black text-white tracking-wide">
-                DAISEKAI <span className="text-cyan-400 font-semibold text-xs">OSAKANSAI</span>
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Importadora y Exportadora Daisekai Limitada. Líderes en fabricación, importación y exportación de componentes y repuestos automotrices de alta rotación para Chile y Sudamérica.
-            </p>
-            <div className="flex items-center gap-2 text-xs text-slate-300">
-              <Container className="w-4 h-4 text-blue-400" />
-              <span>Operaciones directas desde Recinto Amurallado ZOFRI</span>
-            </div>
-          </div>
-
-          {/* Col 2: Hub Operativo y Contacto */}
-          <div className="space-y-3">
-            <h4 className="text-white font-semibold text-sm uppercase tracking-wider">
-              Centro Operativo ZOFRI
-            </h4>
-            <ul className="space-y-2 text-xs">
-              <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                <span>Manzana 11, Galpones 7 y 8, Zona Franca (ZOFRI), Iquique, Chile.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                <span>Dirección Administrativa: Huantajaya 3036, Iquique.</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>+56 9 7523 6397 &bull; Fijo: +56 57 2 544220</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>contacto@daisekai.cl / ventas@osakansai.cl</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 3: Marcas y Cobertura */}
-          <div className="space-y-3">
-            <h4 className="text-white font-semibold text-sm uppercase tracking-wider">
-              Especialistas Asiáticos
-            </h4>
-            <p className="text-xs text-slate-400">
-              Distribución masiva para Toyota, Hyundai, Nissan, Mitsubishi, Kia, Mazda, Suzuki, Isuzu y Subaru.
-            </p>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {["Toyota", "Nissan", "Hyundai", "Kia", "Mitsubishi", "Isuzu", "Suzuki", "Subaru"].map((brand) => (
-                <span
-                  key={brand}
-                  className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-[11px] text-slate-300"
-                >
-                  {brand}
+              <div>
+                <span className="text-xl font-black text-white tracking-wider block font-serif">
+                  DAISEKAI
                 </span>
-              ))}
-            </div>
-            <div className="pt-2 flex items-center gap-2 text-xs text-amber-300/90">
-              <HeartHandshake className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Vínculo comunitario BLIA Chile & Templo Fo Guang Shan Tarapacá</span>
-            </div>
-          </div>
-
-          {/* Col 4: Aerys IT Partnership */}
-          <div className="space-y-3">
-            <h4 className="text-white font-semibold text-sm uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              Ingeniería & Solución B2B
-            </h4>
-            <div className="p-3.5 rounded-xl bg-slate-900/90 border border-blue-900/40 text-xs space-y-2">
-              <div className="text-slate-200 font-semibold flex items-center justify-between">
-                <span>Aerys IT Consultora</span>
-                <span className="text-[10px] text-blue-400 bg-blue-950 px-1.5 py-0.5 rounded border border-blue-800">
-                  Headless Commerce
+                <span className="text-[10px] text-stone-400 font-mono tracking-widest uppercase">
+                  OSAKANSAI GROUP
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-normal">
-                Arquitectura de integración continua con ERP Multiem, indexación OEM/VIN de alto rendimiento y proformas B2B automatizadas.
+            </div>
+
+            <p className="text-xs text-stone-400 leading-relaxed font-light">
+              Importadora y Exportadora Daisekai Limitada. Fabricación, importación y exportación de repuestos para vehículos automotores hacia todo Chile y Sudamérica.
+            </p>
+
+            <div className="space-y-2 pt-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-white block">
+                Novedades de Embarques ZOFRI:
+              </span>
+              <div className="flex items-center gap-2 max-w-sm">
+                <input
+                  type="email"
+                  placeholder="Tu correo corporativo..."
+                  className="w-full px-3.5 py-2.5 bg-stone-900/80 border border-stone-700 rounded-xl text-xs text-white placeholder-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-400 font-light"
+                />
+                <button
+                  type="button"
+                  className="p-2.5 bg-white text-stone-900 rounded-xl hover:bg-stone-200 transition shrink-0"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Columna Central: Navegación */}
+          <div className="md:col-span-4 grid grid-cols-2 gap-6 text-xs">
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-white">
+                Navegación
+              </h4>
+              <ul className="space-y-2 font-light text-stone-400">
+                <li>
+                  <Link href="/#inicio" className="hover:text-white transition">
+                    Inicio (Acceso)
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/#nosotros" className="hover:text-white transition">
+                    Nosotros & ZOFRI
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/#especialidad" className="hover:text-white transition">
+                    Especialidad & Marcas
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/#contacto" className="hover:text-white transition">
+                    Contacto
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/portal" className="text-stone-300 font-medium hover:text-white transition">
+                    Portal Privado B2B
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-white">
+                Operaciones
+              </h4>
+              <ul className="space-y-2 font-light text-stone-400">
+                <li>Manzana 11, Galpones 7 y 8</li>
+                <li>Recinto Amurallado ZOFRI</li>
+                <li>Huantajaya 3036, Iquique</li>
+                <li>Fijo: +56 57 2 544220</li>
+                <li>Móvil: +56 9 7523 6397</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Columna Derecha: Compromiso Social Exacto (Requisito estricto) */}
+          <div className="md:col-span-4 space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white">
+              Compromiso Social
+            </h4>
+            <div className="p-4 rounded-2xl bg-stone-900/60 border border-stone-800 space-y-2">
+              <p className="text-xs text-stone-300 font-light">
+                Vínculo activo con la comunidad de Tarapacá
               </p>
-              <div className="pt-1 text-[10px] text-slate-500 flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                <span>Datos protegidos y catálogo ciego para talleres</span>
+              <div className="flex items-center gap-2 text-xs font-medium text-white pt-1">
+                <HeartHandshake className="w-4 h-4 text-stone-300 shrink-0" />
+                <span>Aporte filantrópico permanente en la región.</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom copyright */}
-        <div className="mt-12 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>
-            &copy; {new Date().getFullYear()} Importadora y Exportadora Daisekai Limitada &bull; Osakansai Group. Todos los derechos reservados.
-          </p>
-          <p className="flex items-center gap-1 text-slate-400">
-            Diseñado & Implementado por <strong className="text-blue-400">Aerys IT</strong> División de Ingeniería Comercial.
-          </p>
+        {/* Fila Gigante Tipográfica Estilo MOD JOURNEY */}
+        <div className="pt-10 border-t border-stone-800/80 space-y-4">
+          <div className="text-center">
+            <div className="text-4xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white/90 select-none font-sans uppercase">
+              DAISEKAI AUTOMOTIVE
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500 font-light pt-4 border-t border-stone-800/50">
+            <p>
+              &copy; {new Date().getFullYear()} Importadora y Exportadora Daisekai Limitada &bull; Osakansai Group. Todos los derechos reservados.
+            </p>
+            <p className="text-stone-400">
+              Zona Franca de Iquique, Región de Tarapacá, Chile.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
